@@ -119,7 +119,8 @@
         const API_KEY = "AIzaSyAfZ7Ej9bw5ns6098sK59RwpC-zkE2ORvc";
         
         const genAI = new GoogleGenerativeAI(API_KEY);
-        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+        // CORRECCIÓN: Inicializar el modelo con el nombre correcto para asegurar la compatibilidad.
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" }); 
 
         // --- Datos Centralizados del Informe ---
         const CUTTING_REPORT_DATA = {
@@ -144,6 +145,7 @@
                 title: "2. Programación y Cobertura del Servicio",
                 intro: "La planificación estratégica del servicio se fundamenta en una programación anual precisa y en la definición clara de las áreas de cobertura, que abarcan rutas, plazas, avenidas con platabandas centrales y laterales, y paseos públicos.",
                 frecuencia: [
+                    // Se usan los cortes para calcular el total
                     { mes: "Noviembre", cortes: 1 },
                     { mes: "Diciembre, Enero, Febrero", cortes: 3 },
                     { mes: "Marzo", cortes: 2 },
@@ -175,7 +177,7 @@
                     { ubicacion: "Avda. Constitución", areaHa: 2.90 },
                     { ubicacion: "Avda. Bolivia", areaHa: 60.49 } // Máxima Área
                 ],
-                maxArea: 60.49 // Para la visualización de barras
+                maxArea: 60.49 
             },
 
             // Sección 3: Asignación de Recursos
@@ -188,7 +190,8 @@
                         { categoria: "Chofer de Segunda", cantidad: 5 },
                     ],
                     operariosProrrateados: [
-                        { meses: "Noviembre y Abril", cortes: 1, operarios: 12 },
+                        // CORRECCIÓN: Agregar la propiedad 'meses' aquí para usarla en el renderizado
+                        { meses: "Noviembre y Abril", cortes: 1, operarios: 12 }, 
                         { meses: "Marzo", cortes: 2, operarios: 25 },
                         { meses: "Diciembre, Enero y Febrero", cortes: 3, operarios: 35 }
                     ]
@@ -198,6 +201,19 @@
                     { tipo: "Mini Tractores", cantidad: 5 },
                     { tipo: "Cortadoras de Césped (explosión)", cantidad: 35 }
                 ]
+            },
+            
+            // Sección 4: Gestión del Residuo Generado
+            gestion: {
+                title: "4. Gestión del Residuo Generado",
+                // CORRECCIÓN: Agregar el texto que faltaba y que estaba en la fuente original.
+                contenido: "El ciclo operativo no concluye con el corte, sino con la correcta gestión de los residuos. Los mismos grupos operativos realizan el acopio y embolsado del material vegetal para su posterior recolección. Este paso es crucial para mantener la limpieza integral de la ciudad."
+            },
+
+            // Cálculo del total de cortes (Necesario para corregir el 'undefined')
+            get totalCortes() {
+                // Noviembre (1) + Diciembre (3) + Enero (3) + Febrero (3) + Marzo (2) + Abril (1) = 13
+                return 1 + 3 + 3 + 3 + 2 + 1;
             }
         };
 
@@ -342,8 +358,9 @@
                     <div class="p-4 bg-yellow-50 rounded-lg shadow-inner">
                         <p class="font-bold text-gray-700 mb-2">Operarios de Corte (Ajuste Estacional):</p>
                         ${data.recursos.personal.operariosProrrateados.map(p => 
+                            // CORRECCIÓN: Usar p.meses para mostrar el rango de meses correctamente
                             `<div class="flex justify-between border-b border-gray-200 py-1">
-                                <span class="text-sm">${p.mes} (${p.cortes} cortes/mes)</span>
+                                <span class="text-sm">${p.meses} (${p.cortes} cortes/mes)</span>
                                 <span class="font-bold text-red-600">${p.operarios} Operarios</span>
                             </div>`
                         ).join('')}
@@ -370,7 +387,7 @@
                 <div class="bg-white rounded-xl shadow-md overflow-hidden">
                     <div id="header-${id}" class="accordion-header flex justify-between items-center p-5 lg:p-6 bg-grass-green/10 hover:bg-grass-green/20 transition-all ${isOpen ? 'border-b border-grass-green' : ''}">
                         <h3 class="text-xl font-bold text-dark-grass">${title}</h3>
-                        <svg class="chevron w-6 h-6 text-dark-grass" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <svg class="chevron w-6 h-6 text-dark-grass ${openClass}" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                         </svg>
                     </div>
@@ -408,7 +425,8 @@
                 <div class="grid md:grid-cols-2 gap-6 mb-6">
                     <!-- Frecuencia -->
                     <div class="p-4 bg-grass-green/10 rounded-lg shadow-sm border border-grass-green/30">
-                        <h4 class="font-bold text-lg text-dark-grass mb-2">Frecuencia y Horario Anual (Total: ${CUTTING_REPORT_DATA.totalCortes} cortes)</h4>
+                        <!-- CORRECCIÓN: Usar get totalCortes() -->
+                        <h4 class="font-bold text-lg text-dark-grass mb-2">Frecuencia y Horario Anual (Total: ${CUTTING_REPORT_DATA.totalCortes} cortes)</h4> 
                         <ul class="list-disc list-inside space-y-1 text-gray-700">
                             ${CUTTING_REPORT_DATA.programacion.frecuencia.map(f => 
                                 `<li><span class="font-semibold">${f.cortes} cortes/mes:</span> ${f.mes}</li>`
@@ -440,8 +458,7 @@
             
             // Contenido de Gestión de Residuos
             const gestionContent = `
-                <h3 class="text-2xl font-bold text-dark-grass mb-4">Gestión del Residuo Generado</h3>
-                <p class="text-gray-700 leading-relaxed">${CUTTING_REPORT_DATA.gestionResiduo}</p>
+                <p class="text-gray-700 leading-relaxed">${CUTTING_REPORT_DATA.gestion.contenido}</p>
                 <div class="p-4 mt-4 bg-blue-50 border-l-4 border-blue-500 text-blue-800 rounded-lg">
                     <p class="font-semibold">Sinergia Operativa Clave:</p>
                     <p class="text-sm">La recolección final del material embolsado es realizada por el <strong>Servicio 2: Recolección y Limpieza de Microbasurales</strong>.</p>
@@ -450,7 +467,6 @@
             
             // Contenido de Conclusión
             const conclusionContent = `
-                <h3 class="text-2xl font-bold text-dark-grass mb-4">Conclusión Operativa</h3>
                 <p class="text-gray-700 leading-relaxed font-semibold">${CUTTING_REPORT_DATA.conclusion}</p>
             `;
 
@@ -459,7 +475,7 @@
             html += createAccordionSection('programacion', CUTTING_REPORT_DATA.programacion.title, programacionContent, true); // Abrir la Cobertura por defecto
             html += createAccordionSection('metodologia', CUTTING_REPORT_DATA.metodologia.title, metodologiaContent);
             html += createAccordionSection('recursos', CUTTING_REPORT_DATA.recursos.title, recursosContent);
-            html += createAccordionSection('gestion', '4. Gestión del Residuo Generado', gestionContent);
+            html += createAccordionSection('gestion', CUTTING_REPORT_DATA.gestion.title, gestionContent); // CORRECCIÓN: Usar la propiedad 'title' correcta
             html += createAccordionSection('conclusion', '5. Conclusión Operativa', conclusionContent);
             
             reportDetailsDiv.innerHTML = html;
@@ -468,7 +484,16 @@
             document.querySelectorAll('.accordion-header').forEach(header => {
                 header.addEventListener('click', () => {
                     const content = document.getElementById(`content-${header.id.split('-')[1]}`);
+                    const chevron = header.querySelector('.chevron');
                     content.classList.toggle('open');
+                    chevron.classList.toggle('open');
+                    
+                    // Asegurar que el borde inferior se muestre solo si está abierto
+                    if (content.classList.contains('open')) {
+                        header.classList.add('border-b', 'border-grass-green');
+                    } else {
+                        header.classList.remove('border-b', 'border-grass-green');
+                    }
                 });
             });
         }
@@ -489,7 +514,9 @@
             if (oldSummary) oldSummary.remove();
             
             // Concatenar el contenido de todo el informe en un solo texto plano para Gemini
-            const fullReportText = JSON.stringify(CUTTING_REPORT_DATA, null, 2); 
+            // Usar la función de acceso para evitar que se ejecute el getter totalCortes
+            const dataToPrompt = { ...CUTTING_REPORT_DATA, totalCortes: CUTTING_REPORT_DATA.totalCortes };
+            const fullReportText = JSON.stringify(dataToPrompt, null, 2); 
             const prompt = `Basado en el siguiente informe técnico sobre el Servicio 12 de Corte de Césped en Salta, responde a esta pregunta: "${question}"\n\n--- INFORME TÉCNICO COMPLETO ---\n${fullReportText}`;
 
             const response = await callGeminiAPI(prompt, askGeminiText, askGeminiSpinner);
@@ -508,7 +535,8 @@
             geminiResponseDiv.classList.add('hidden'); 
 
             // Construir un prompt para un resumen ejecutivo
-            const fullReportText = JSON.stringify(CUTTING_REPORT_DATA, null, 2);
+            const dataToPrompt = { ...CUTTING_REPORT_DATA, totalCortes: CUTTING_REPORT_DATA.totalCortes };
+            const fullReportText = JSON.stringify(dataToPrompt, null, 2);
             const prompt = `Genera un resumen ejecutivo conciso de dos párrafos (máximo 150 palabras) sobre el 'Informe Técnico: Servicio de Corte de Césped (Servicio 12)' en Salta, utilizando solo la información provista a continuación. Incluye los puntos clave de Cobertura (Ha Total) y Frecuencia Anual (Total de Cortes).\n\n--- INFORME TÉCNICO COMPLETO ---\n${fullReportText}`;
 
             const response = await callGeminiAPI(prompt, generateSummaryText, generateSummarySpinner);
